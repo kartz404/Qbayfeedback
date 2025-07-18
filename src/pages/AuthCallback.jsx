@@ -4,47 +4,51 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 export default function AuthCallback() {
-const { instance } = useMsal();
-const navigate = useNavigate();
+  const { instance } = useMsal();
+  const navigate = useNavigate();
 
-useEffect(() => {
-const handleAuth = async () => {
-try {
-const response = await instance.handleRedirectPromise();
-    let account = null;
+  useEffect(() => {
+    const handleAuth = async () => {
+      try {
+        const response = await instance.handleRedirectPromise();
 
-    if (response) {
-      account = response.account;
-      instance.setActiveAccount(account);
-    } else {
-      const accounts = instance.getAllAccounts();
-      if (accounts.length > 0) {
-        account = accounts[0];
-        instance.setActiveAccount(account);
+        let account = null;
+
+        if (response && response.account) {
+          account = response.account;
+          instance.setActiveAccount(account);
+        } else {
+          const accounts = instance.getAllAccounts();
+          if (accounts.length > 0) {
+            account = accounts[0];
+            instance.setActiveAccount(account);
+          }
+        }
+
+        if (account) {
+          await axios.post("http://localhost:5000/api/auth/microsoft", {
+            name: account.name,
+            email: account.username,
+            microsoftId: account.localAccountId,
+          });
+
+          console.log("✅ Logged in:", account.name);
+          navigate("/home"); // Navigate to homepage
+        } else {
+          console.warn("❌ No account found after redirect.");
+          navigate("/home"); // Fallback
+        }
+      } catch (err) {
+        console.error("Auth Error:", err);
+        navigate("/home"); // Error fallback
       }
+    };
+
+    // Ensure MSAL instance is initialized before calling
+    if (instance) {
+      handleAuth();
     }
+  }, [instance, navigate]);
 
-    if (account) {
-      await axios.post("http://localhost:5000/api/auth/microsoft", {
-        name: account.name,
-        email: account.username,
-        microsoftId: account.localAccountId,
-      });
-
-      console.log("✅ Logged in:", account.name);
-      navigate("/"); // <-- Update this if your homepage is named differently
-    } else {
-      console.warn("No account found after redirect.");
-      navigate("/"); // fallback to login
-    }
-  } catch (err) {
-    console.error("Auth Error:", err);
-    navigate("/home"); // fallback to login
-  }
-};
-
-handleAuth();
-}, [instance, navigate]);
-
-return <p>Signing in...</p>;
+  return <p>🔐 Signing in, please wait...</p>;
 }

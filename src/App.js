@@ -1,16 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { MsalProvider } from '@azure/msal-react';
-import { PublicClientApplication } from '@azure/msal-browser';
-import { msalConfig } from './authConfig';
 
 import HomePage from './pages/HomePage';
 import CalendarPage from './pages/CalendarPage';
 import LoginPage from './pages/LoginPage';
 import AuthCallback from './pages/AuthCallback';
-
-// Initialize the MSAL instance
-const msalInstance = new PublicClientApplication(msalConfig);
 
 function AppRoutes() {
   return (
@@ -26,11 +20,9 @@ function AppRoutes() {
 
 function App() {
   return (
-    <MsalProvider instance={msalInstance}>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </MsalProvider>
+    <Router>
+      <AppRoutes />
+    </Router>
   );
 }
 
